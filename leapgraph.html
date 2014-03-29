@@ -1,0 +1,227 @@
+<html>
+  <head>
+    <title>Leap JavaScript Sample</title>
+    <script src="leap.js"></script>
+	<script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+	<script src="http://code.jquery.com/jquery-latest.min.js" type="text/javascript"></script>
+	<style type = text/css>
+	body {
+	  font: 10px sans-serif;
+	  background-color: #FEFEFE;
+	}
+
+	.axis path, .axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+
+	.x.axis path {
+	  display: none;
+	}
+
+	.line {
+	  fill: none;
+	  stroke: steelblue;
+	  stroke-width: 2.5px;
+	}
+
+
+	.area {
+	  fill: lightgrey;
+	}
+
+	#wrap {
+		width: 1150px;
+		height: 100%;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
+	#inputcontainer {
+		width: 200px;
+		float: right;
+		height: 100%;
+		padding: 10px;
+	/*	padding: 20px;
+	*/}
+
+	#svgcontainer {
+		background-color: white;
+		margin-right: 230px;
+		margin-top: 10px;
+		height: 100%;
+		border-style: solid;
+		border-width: 1px;
+		border-color: lightgrey;
+	}
+
+	#slider-range {
+		width: 150px;
+		margin-top: 10px;
+		margin-left: 2px;
+	}
+
+	#radiocontainer {
+		margin-top: 20px;
+	}
+
+	</style>
+    <script>
+	
+    function togglePause() {
+      paused = !paused;
+	  
+      if (paused) {
+        document.getElementById("pause").innerText = "Resume";
+		
+		var xsum = 0;
+		var ysum = 0;
+		var zsum = 0;
+		var coords = [];
+		for(var i=0; i < palmpositions['x'].length; i++) {
+			var temp = [];
+			temp['x'] = palmpositions['x'][i];
+			temp['y'] = palmpositions['y'][i];
+			temp['z'] = palmpositions['z'][i];
+			coords.push(temp);
+			xsum += palmpositions['x'][i];
+			ysum += palmpositions['y'][i];
+			zsum += palmpositions['z'][i];
+		}
+		
+		var xmean = xsum / palmpositions['x'].length;
+		var ymean = ysum / palmpositions['y'].length;
+		var zmean = zsum / palmpositions['z'].length;
+		
+	
+		var margin = {top: 20, right: 1, bottom: 30, left: 30},
+		    width = 600 - margin.left - margin.right,
+		    height = 450 - margin.top - margin.bottom;
+
+	
+		var svg = d3.select("#svgcontainer").append("svg")
+		    .attr("width", width + margin.left + margin.right)
+		    .attr("height", height + margin.top + margin.bottom)
+		  	.append("g")
+		    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		
+		
+		var x = d3.scale.linear()
+		    .range([0, width]);
+
+		var y = d3.scale.linear()
+		    .range([height, 0]);
+		
+		var xAxis = d3.svg.axis()
+		    .scale(x)
+		    .orient("bottom");
+
+		var yAxis = d3.svg.axis()
+		    .scale(y)
+		    .orient("left");
+		
+		var line = d3.svg.line()
+		    .x(function(d) { 
+				return x(d.x); })
+		    .y(function(d) { return y(d.y); });
+			
+		
+		function makeGraph() {
+			x.domain(d3.extent(palmpositions.x))
+			y.domain(d3.extent(palmpositions.y));
+	
+			svg.append("g")
+				.attr("class", "x axis")
+				.attr("transform", "translate(0," + height + ")")
+				.call(xAxis);
+	
+			svg.append("g")
+				.attr("class", "y axis")
+				.attr("transform", "translate(" + width + ",0)")
+				.call(yAxis);
+			
+			console.log(palmpositions.y);
+						
+			svg.append("path")
+				.datum(coords)
+				.attr("class", "line")
+				.attr("d", line);
+		}
+		
+		function updateGraph() {
+			console.log("Updating graph.");
+			x.domain(d3.extent(palmpositions.x))
+			y.domain(d3.extent(palmpositions.y));
+			
+			svg.selectAll(".line")
+				.datum(coords)
+				.transition()
+				.duration(500)
+				.attr("d", line);
+				
+			svg.selectAll(".y")
+				.datum(palmpositions.y)
+				.transition()
+				.duration(500)
+				.call(yAxis);
+		}
+		
+		
+		console.log(xmean, ymean, zmean);
+		
+		if(!toggled) {
+			toggled = true;
+			makeGraph();
+		}
+		else {
+			updateGraph();
+		}
+				
+		// console.log(palmpositions);
+      } else {
+        document.getElementById("pause").innerText = "Pause";
+      }
+    }
+	
+	var toggled = false;
+	var previousFrame = null;
+	var paused = false;
+	var pauseOnGesture = false;
+
+	// Setup Leap loop with frame callback function
+	var controllerOptions = {enableGestures: true};
+	
+	var palmpositions = [];
+	palmpositions['x'] = [];
+	palmpositions['y'] = [];
+	palmpositions['z'] = [];
+	
+	Leap.loop(controllerOptions, function(frame) {
+	  if (paused) {
+	    return; // Skip this update
+	  }
+	  
+	  var frameOutput = document.getElementById("frameData");
+	  
+	  if(frame.hands.length > 0) {
+		  hand = frame.hands[0];
+		  console.log(hand.palmPosition);
+		  palmpositions['x'].push(hand.palmPosition['0']);
+		  palmpositions['y'].push(hand.palmPosition['1']);
+		  palmpositions['z'].push(hand.palmPosition['2']);
+	  }
+  });
+
+  
+  	
+	</script>
+  </head>
+  <body>
+    <h1>Leap JavaScript Sample</h1>
+    <div id="main">
+	<button id="pause" onclick="togglePause()">Pause</button>
+	<div id="svgcontainer"></svg>		  
+    </div>
+  </body>
+</html>
