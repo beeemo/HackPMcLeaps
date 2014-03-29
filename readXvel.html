@@ -37,17 +37,12 @@ function vectorToString(vector, digits) {
 }
     
     var previousFrame = null;
-    var paused = false;
+    var paused = true;
+	var started = false;
     var pauseOnGesture = false;
 
     // Setup Leap loop with frame callback function
     var controllerOptions = {enableGestures: true};
-    function togglePause() {
-      paused = !paused;
-
-      if (paused) {
-        document.getElementById("pause").innerText = "Resume";}
-    }
 
     var palmpositions = [];
     palmpositions['x'] = [];
@@ -55,24 +50,45 @@ function vectorToString(vector, digits) {
     palmpositions['z'] = [];
 
     Leap.loop(controllerOptions, function(frame) {
-      if (paused) {
-        return; // Skip this update
-      }
-	  
 	  if(frame.gestures.length > 0) {
 		  for (var i = 0; i < frame.gestures.length; i++) {
 		        var gesture = frame.gestures[i];
 			}
-			console.log(gesture.type);
-			if (gesture.type == "swipe") {
-				var isHorizontal = Math.abs(gesture.direction[0]) > Math.abs(gesture.direction[1]);
-				
-				if(isHorizontal) {
+			// console.log(gesture.type);
+			if (gesture.type == "screenTap") {
+				if(!started) {
 					apiswf.rdio_play(ALBUM_CODE);
+					started = true;
+					paused = false;
+					console.log("Starting");
 				}
-
+			else if(paused) {
+					apiswf.rdio_play();
+					paused = false;
+					console.log("Playing");
+				} else {
+					apiswf.rdio_pause();
+					paused = true;
+					console.log("Pausing");
+				}
+			if(gesture.type == "swipe") {
+				console.type("Next song.");
+				apiswf.rdio_next();
 			}
+			
+				// var isHorizontal = Math.abs(gesture.direction[0]) > Math.abs(gesture.direction[1]);
+				// // console.log(gesture);
+				// if(isHorizontal && paused) {
+				// 	apiswf.rdio_play(ALBUM_CODE);
+				// 	paused = false;
+				// 	console.log("Horizontal swipe");
+				// }
+				// else {
+				// 	console.log("Vertical swipe");
+				// }
+
 	  }
+  }
 	  
 						// 
 						//                 var handvelX =0;
