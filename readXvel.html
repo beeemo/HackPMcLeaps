@@ -13,123 +13,6 @@
      </style>
     <script>
 
-    /*
-    function togglePause() {
-      paused = !paused;
-
-      if (paused) {
-        document.getElementById("pause").innerText = "Resume";
-
-        var xsum = 0;
-        var ysum = 0;
-        var zsum = 0;
-        var coords = [];
-        for(var i=0; i < palmpositions['x'].length; i++) {
-            var temp = [];
-            temp['x'] = palmpositions['x'][i];
-            temp['y'] = palmpositions['y'][i];
-            temp['z'] = palmpositions['z'][i];
-            coords.push(temp);
-            xsum += palmpositions['x'][i];
-            ysum += palmpositions['y'][i];
-            zsum += palmpositions['z'][i];
-        }
-
-        var xmean = xsum / palmpositions['x'].length;
-        var ymean = ysum / palmpositions['y'].length;
-        var zmean = zsum / palmpositions['z'].length;
-
-
-        var margin = {top: 20, right: 1, bottom: 30, left: 30},
-            width = 600 - margin.left - margin.right,
-            height = 450 - margin.top - margin.bottom;
-
-
-        var svg = d3.select("#svgcontainer").append("svg")
-            .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
-            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-
-        var x = d3.scale.linear()
-            .range([0, width]);
-
-        var y = d3.scale.linear()
-            .range([height, 0]);
-
-        var xAxis = d3.svg.axis()
-            .scale(x)
-            .orient("bottom");
-
-        var yAxis = d3.svg.axis()
-            .scale(y)
-            .orient("left");
-
-        var line = d3.svg.line()
-            .x(function(d) { 
-                return x(d.x); })
-            .y(function(d) { return y(d.y); });
-
-
-        function makeGraph() {
-            x.domain(d3.extent(palmpositions.x))
-            y.domain(d3.extent(palmpositions.y));
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis);
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .attr("transform", "translate(" + width + ",0)")
-                .call(yAxis);
-
-            console.log(palmpositions.y);
-
-            svg.append("path")
-                .datum(coords)
-                .attr("class", "line")
-                .attr("d", line);
-        }
-
-        function updateGraph() {
-            console.log("Updating graph.");
-            x.domain(d3.extent(palmpositions.x))
-            y.domain(d3.extent(palmpositions.y));
-
-            svg.selectAll(".line")
-                .datum(coords)
-                .transition()
-                .duration(500)
-                .attr("d", line);
-
-            svg.selectAll(".y")
-                .datum(palmpositions.y)
-                .transition()
-                .duration(500)
-                .call(yAxis);
-        }
-
-
-        console.log(xmean, ymean, zmean);
-
-        if(!toggled) {
-            toggled = true;
-            makeGraph();
-        }
-        else {
-            updateGraph();
-        }
-
-        // console.log(palmpositions);
-      } else {
-        document.getElementById("pause").innerText = "Pause";
-      }
-    }
-
-    */
 function vectorToString(vector, digits) {
   if (typeof digits === "undefined") {
     digits = 1;
@@ -138,7 +21,7 @@ function vectorToString(vector, digits) {
              + vector[1].toFixed(digits) + ", "
              + vector[2].toFixed(digits) + ")";
 }
-    var toggled = false;
+    
     var previousFrame = null;
     var paused = false;
     var pauseOnGesture = false;
@@ -162,35 +45,40 @@ function vectorToString(vector, digits) {
         return; // Skip this update
       }
 
-      /*var frameOutput = document.getElementById("frameData");
-      if(frame.hands.length > 0) {
-          hand = frame.hands[0];
-          console.log(hand.palmPosition);
-          palmpositions['x'].push(hand.palmPosition['0']);
-          palmpositions['y'].push(hand.palmPosition['1']);
-          palmpositions['z'].push(hand.palmPosition['2']);
-        
-              document.getElementById("pause").innerText = ("X moving");
-
-                } */
                 var handvelX =0;
+                var handvelY =0;
+                var handvelZ =0;
+
                 var handvelString = "";
                 if (frame.hands.length > 0) {
                 for (var i = 0; i < frame.hands.length; i++) {
                     var hand = frame.hands[i];
-                    handvelX = hand.palmVelocity[1];
-                    handvelString += "Palm velocity: " + vectorToString(hand.palmVelocity) + " mm/s";
-                    document.getElementById("pause").innerText = ("velocity (X) : "+ handvelX);
+                    handvelY += hand.palmVelocity[1];  
+                    handvelX += hand.palmVelocity[0]; //USE THIS FOR FORWARD / BACKWARD
+                    handvelZ += hand.palmVelocity[2];//USE THIS FOR IF STATEMENT
+                    
+
+                    //handvelString += "Palm velocity: " + vectorToString(hand.palmVelocity) + " mm/s";
+                    //document.getElementById("pause").innerText = ("velocity (X) : "+ handvelY);
                     }
+                    if(handvelZ>1) ;//then pause
+                    if(handvelZ<-1); //then play
+                    if(handvelY>1) ;//then rewind/ back
+                    if(handvelY<-1); //then next
+                    //and we can use X later for volume control (lets keep at maybe for now)
+                       
                 }
   }); 
 
     var ctl = new Leap.Controller({enableGestures: true});
         var swiper = ctl.gesture('swipe');
-        swiper.update(function(g) {
+    
+    /*    swiper.update(function(g) {
         document.getElementById("pause").innerText=("swiped that shizzle");
     });
-    
+    */
+
+
     </script>
   </head>
   <body>
